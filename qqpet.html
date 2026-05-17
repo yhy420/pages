@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pet</title>
+<style>
+body {
+  background: #1a1a3e;
+  color: #fff;
+  font-family: sans-serif;
+  text-align: center;
+  padding-top: 30px;
+}
+input {
+  padding: 12px;
+  margin: 8px;
+  width: 240px;
+  border-radius: 8px;
+  border: none;
+  text-align: center;
+  font-size: 16px;
+}
+button {
+  width: 180px;
+  height: 46px;
+  margin: 10px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  background: #0fce7c;
+  color: #1a1a3e;
+  cursor: pointer;
+}
+#pet {
+  font-size: 100px;
+  animation: jump 1.5s infinite;
+  display: none;
+}
+@keyframes jump {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+#bubble {
+  background: #fff;
+  color: #000;
+  padding: 12px;
+  border-radius: 10px;
+  margin: 20px auto;
+  width: 80%;
+  max-width: 320px;
+  display: none;
+}
+#status {
+  margin-top: 15px;
+  font-size: 16px;
+  opacity: 0.9;
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<input id="u" placeholder="账号">
+<input id="p" type="password" placeholder="密码">
+<br>
+<button onclick="enter()">进入</button>
+
+<div id="pet">🐧</div>
+<div id="bubble"></div>
+<div id="status"></div>
+
+<div>
+  <button onclick="feed()">喂食</button>
+  <button onclick="play()">玩耍</button>
+</div>
+
+<script>
+let pet = {};
+
+function enter() {
+  const uid = document.getElementById("u").value.trim();
+  const pwd = document.getElementById("p").value.trim();
+  if (!uid || !pwd) return;
+
+  const key = "pet_" + uid;
+  const data = localStorage.getItem(key);
+
+  if (data) {
+    pet = JSON.parse(data);
+    if (pet.pwd !== pwd) {
+      alert("密码错误");
+      return;
+    }
+  } else {
+    pet = { pwd: pwd, hunger: 80, mood: 90 };
+  }
+
+  localStorage.setItem(key, JSON.stringify(pet));
+  showGame();
+}
+
+function showGame() {
+  document.getElementById("pet").style.display = "block";
+  document.getElementById("bubble").style.display = "block";
+  document.getElementById("status").style.display = "block";
+  render();
+}
+
+function render() {
+  document.getElementById("status").innerText = "饥饿: " + pet.hunger + " 心情: " + pet.mood;
+}
+
+function feed() {
+  pet.hunger = Math.min(100, pet.hunger + 10);
+  document.getElementById("bubble").innerText = "喂食成功";
+  save();
+}
+
+function play() {
+  pet.mood = Math.min(100, pet.mood + 10);
+  document.getElementById("bubble").innerText = "玩耍成功";
+  save();
+}
+
+function save() {
+  const key = "pet_" + document.getElementById("u").value.trim();
+  localStorage.setItem(key, JSON.stringify(pet));
+  render();
+}
+</script>
+
+</body>
+</html>
