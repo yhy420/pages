@@ -4,194 +4,76 @@
 <meta charset="UTF-8">
 <title>俄罗斯方块</title>
 <style>
-  body {
-    background: #1a1a3e;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    color: white;
-    font-family: sans-serif;
-  }
-  .container {
-    display: flex;
-    gap: 20px;
-  }
-  canvas {
-    border: 2px solid #0fce7c;
-    background: #000;
-  }
-  .info {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  .score {
-    font-size: 24px;
-    background: rgba(255,255,255,0.1);
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-  }
-  .instructions {
-    font-size: 14px;
-    line-height: 1.6;
-    background: rgba(255,255,255,0.1);
-    padding: 15px;
-    border-radius: 10px;
-  }
+  body { background:#1a1a3e; display:flex; justify-content:center; align-items:center; height:100vh; }
+  canvas { background:#000; border:2px solid #0fce7c; }
 </style>
 </head>
 <body>
-
-<div class="container">
-  <canvas id="game" width="300" height="600"></canvas>
-  <div class="info">
-    <div class="score">
-      分数<br>
-      <span id="score">0</span>
-    </div>
-    <div class="instructions">
-      ⬅️ ➡️ 移动<br>
-      ⬆️ 旋转<br>
-      ⬇️ <b>加速下落</b><br>
-      R 重新开始
-    </div>
-  </div>
-</div>
-
+<canvas id="g" width="300" height="600"></canvas>
 <script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const scoreEl = document.getElementById('score');
-ctx.scale(30, 30);
-
-const SHAPES = [
-  [[1,1,1,1]],
-  [[1,1],[1,1]],
-  [[0,1,0],[1,1,1]],
-  [[1,0,0],[1,1,1]],
-  [[0,0,1],[1,1,1]],
-  [[0,1,1],[1,1,0]],
-  [[1,1,0],[0,1,1]]
+const c=document.getElementById('g'), ctx=c.getContext('2d');
+ctx.scale(30,30);
+const SHAPES=[
+  [[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]],
+  [[1,0,0],[1,1,1]], [[0,0,1],[1,1,1]],
+  [[0,1,1],[1,1,0]], [[1,1,0],[0,1,1]]
 ];
+let board=Array.from({length:20},()=>Array(10).fill(0));
+let piece={shape:random(),x:3,y:0};
 
-let board = Array.from({length: 20}, () => Array(10).fill(0));
-let score = 0;
-let dropCounter = 0;
-let dropInterval = 500;
-let lastTime = 0;
-let piece = randomShape();
+function random(){ return SHAPES[Math.floor(Math.random()*SHAPES.length)]; }
 
-function randomShape() {
-  const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
-  return { shape, x: 3, y: 0 };
-}
-
-function drawBoard() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  board.forEach((row, y) => {
-    row.forEach((val, x) => {
-      if (val) {
-        ctx.fillStyle = '#0fce7c';
-        ctx.fillRect(x, y, 0.9, 0.9);
+function collide(){
+  for(let y=0;y<piece.shape.length;y++)
+    for(let x=0;x<piece.shape[y].length;x++)
+      if(piece.shape[y][x]){
+        let nx=piece.x+x, ny=piece.y+y;
+        if(nx<0||nx>=10||ny>=20||board[ny][nx]) return true;
       }
-    });
-  });
-}
-
-function drawPiece() {
-  ctx.fillStyle = '#fff';
-  piece.shape.forEach((row, y) => {
-    row.forEach((val, x) => {
-      if (val) ctx.fillRect(piece.x + x, piece.y + y, 0.9, 0.9);
-    });
-  });
-}
-
-function collide() {
-  for (let y = 0; y < piece.shape.length; y++) {
-    for (let x = 0; x < piece.shape[y].length; x++) {
-      if (
-        piece.shape[y][x] &&
-        (piece.y + y >= 20 ||
-         piece.x + x < 0 ||
-         piece.x + x >= 10 ||
-         board[piece.y + y][piece.x + x])
-      ) return true;
-    }
-  }
   return false;
 }
 
-function merge() {
-  piece.shape.forEach((row, y) => {
-    row.forEach((val, x) => {
-      if (val) board[piece.y + y][piece.x + x] = 1;
-    });
-  });
+function merge(){
+  piece.shape.forEach((r,y)=>r.forEach((v,x)=>v&&(board[piece.y+y][piece.x+x]=1)));
 }
 
-function clearLines() {
-  let lines = 0;
-  board = board.filter(row => {
-    if (row.every(c => c === 1)) {
-      lines++;
-      return false;
-    }
-    return true;
-  });
-  while (board.length < 20) board.unshift(Array(10).fill(0));
-  score += lines * 100;
-  scoreEl.textContent = score;
+function rotate(){
+  const r=piece.shape[0].map((_,i)=>piece.shape.map(r=>r[i]).reverse());
+  const old=piece.shape; piece.shape=r;
+  if(collide()) piece.shape=old;
 }
 
-function drop() {
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft') piece.x--;
+  if(e.key==='ArrowRight') piece.x++;
+  if(e.key==='ArrowUp') rotate();
+  if(e.key==='ArrowDown') drop();
+  if(e.key==='r'||e.key==='R') reset();
+});
+
+function drop(){
   piece.y++;
-  if (collide()) {
-    piece.y--;
-    merge();
-    clearLines();
-    piece = randomShape();
-    if (collide()) {
-      board = Array.from({length: 20}, () => Array(10).fill(0));
-      score = 0;
-      scoreEl.textContent = 0;
-    }
-  }
-  dropCounter = 0;
+  if(collide()){ piece.y--; merge(); clear(); piece={shape:random(),x:3,y:0}; if(collide()) reset(); }
 }
 
-function update(time = 0) {
-  const deltaTime = time - lastTime;
-  lastTime = time;
-  dropCounter += deltaTime;
-  if (dropCounter > dropInterval) drop();
-  drawBoard();
-  drawPiece();
-  requestAnimationFrame(update);
+function clear(){
+  board=board.filter(r=>!r.every(c=>c)).map(r=>r);
+  while(board.length<20) board.unshift(Array(10).fill(0));
 }
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft') piece.x--;
-  if (e.key === 'ArrowRight') piece.x++;
-  if (e.key === 'ArrowDown') dropInterval = 50; // 加速
-  if (e.key === 'ArrowUp') {
-    const rotated = piece.shape[0].map((_, i) =>
-      piece.shape.map(row => row[i]).reverse()
-    );
-    const oldShape = piece.shape;
-    piece.shape = rotated;
-    if (collide()) piece.shape = oldShape;
-  }
-  if (e.key === 'r' || e.key === 'R') location.reload();
-});
+function reset(){
+  board=Array.from({length:20},()=>Array(10).fill(0));
+  piece={shape:random(),x:3,y:0};
+}
 
-document.addEventListener('keyup', e => {
-  if (e.key === 'ArrowDown') dropInterval = 500; // 恢复
-});
-
-update();
+function draw(){
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,10,20);
+  board.forEach((r,y)=>r.forEach((v,x)=>v&&(ctx.fillStyle='#0fce7c',ctx.fillRect(x,y,0.9,0.9))));
+  ctx.fillStyle='#fff';
+  piece.shape.forEach((r,y)=>r.forEach((v,x)=>v&&ctx.fillRect(piece.x+x,piece.y+y,0.9,0.9)));
+}
+setInterval(()=>{ drop(); draw(); },500);
 </script>
 </body>
 </html>
+
