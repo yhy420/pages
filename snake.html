@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>贪吃蛇</title>
+<style>
+  body { margin: 0; background: #1a1a3e; display: flex; justify-content: center; align-items: center; height: 100vh; }
+  canvas { border: 2px solid #0fce7c; background: #000; }
+</style>
+</head>
+<body>
+<canvas id="g" width="400" height="400"></canvas>
+<script>
+const c = document.getElementById('g'), ctx = c.getContext('2d');
+const box = 20;
+let s = [{x: 9*box, y: 10*box}];
+let d = 'RIGHT';
+let f = {x: Math.floor(Math.random()*19)*box, y: Math.floor(Math.random()*19)*box};
+let sc = 0;
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowLeft' && d !== 'RIGHT') d = 'LEFT';
+  if(e.key === 'ArrowUp' && d !== 'DOWN') d = 'UP';
+  if(e.key === 'ArrowRight' && d !== 'LEFT') d = 'RIGHT';
+  if(e.key === 'ArrowDown' && d !== 'UP') d = 'DOWN';
+});
+
+function draw() {
+  ctx.clearRect(0,0,c.width,c.height);
+  for(let i=0; i<s.length; i++) {
+    ctx.fillStyle = i===0 ? '#0fce7c' : '#fff';
+    ctx.fillRect(s[i].x, s[i].y, box, box);
+  }
+  ctx.fillStyle='red'; ctx.fillRect(f.x,f.y,box,box);
+
+  let hx = s[0].x, hy = s[0].y;
+  if(d=='LEFT') hx-=box; if(d=='UP') hy-=box; if(d=='RIGHT') hx+=box; if(d=='DOWN') hy+=box;
+
+  if(hx===f.x && hy===f.y) { sc++; f={x: Math.floor(Math.random()*19)*box, y: Math.floor(Math.random()*19)*box}; }
+  else s.pop();
+
+  let nh = {x: hx, y: hy};
+  if(hx<0||hx>=c.width||hy<0||hy>=c.height||s.some(seg=>seg.x===hx&&seg.y===hy)) { alert('Game Over'); location.reload(); }
+  s.unshift(nh);
+}
+setInterval(draw, 120);
+</script>
+</body>
+</html>
