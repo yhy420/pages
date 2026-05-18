@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>website-games</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    background: #1a1a3e;
+    color: #fff;
+    font-family: sans-serif;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  h1 {
+    color: #0fce7c;
+    font-size: 44px;
+    margin-bottom: 30px;
+  }
+  .games {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 15px;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  .games a {
+    display: block;
+    padding: 20px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+    text-decoration: none;
+    color: #fff;
+    font-size: 18px;
+    transition: 0.2s;
+  }
+  .games a:hover {
+    background: #0fce7c;
+    color: #1a1a3e;
+  }
+</style>
+</head>
+<body>
+
+<h1>website-games</h1>
+
+<div class="games">
+  <a href="chess.html">♟️ 象棋</a>
+  <a href="tetris.html">🧱 俄罗斯方块</a>
+  <a href="snake.html">🐍 贪吃蛇</a>
+  <a href="mine.html">💣 扫雷</a>
+  <a href="plane.html">✈️ 飞机大战</a>
+</div>
+
+</body>
+</html>
