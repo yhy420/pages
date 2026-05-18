@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>俄罗斯方块</title>
 <style>
   body {
@@ -10,12 +11,14 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
+    margin: 0;
     color: white;
     font-family: sans-serif;
   }
   .container {
     display: flex;
-    gap: 20px;
+    gap: 10px;
+    align-items: flex-start;
   }
   canvas {
     border: 2px solid #0fce7c;
@@ -24,22 +27,35 @@
   .info {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 10px;
+    width: 120px;
   }
   .score {
-    font-size: 24px;
+    font-size: 18px;
     background: rgba(255,255,255,0.1);
-    padding: 15px;
+    padding: 10px;
     border-radius: 10px;
     text-align: center;
   }
-  .instructions {
-    font-size: 14px;
-    line-height: 1.6;
-    background: rgba(255,255,255,0.1);
-    padding: 15px;
-    border-radius: 10px;
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(3, 50px);
+    grid-template-rows: repeat(3, 50px);
+    gap: 5px;
   }
+  .controls button {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    border-radius: 10px;
+    border: none;
+    background: #0fce7c;
+    color: #1a1a3e;
+    cursor: pointer;
+  }
+  .rotate-btn { grid-column: 2; }
+  .down-btn { grid-column: 2; grid-row: 2; }
+  .reset-btn { grid-column: 3; grid-row: 3; background: #ff4757; color: white; }
 </style>
 </head>
 <body>
@@ -47,15 +63,13 @@
 <div class="container">
   <canvas id="game" width="300" height="600"></canvas>
   <div class="info">
-    <div class="score">
-      分数<br>
-      <span id="score">0</span>
-    </div>
-    <div class="instructions">
-      ⬅️ ➡️ 移动<br>
-      ⬆️ 旋转<br>
-      ⬇️ <b>加速下落</b><br>
-      R 重新开始
+    <div class="score">分数<br><span id="score">0</span></div>
+    <div class="controls">
+      <button onclick="move(-1)">⬅️</button>
+      <button onclick="move(1)">➡️</button>
+      <button class="rotate-btn" onclick="rotate()">🔄</button>
+      <button class="down-btn" onclick="drop()">⬇️</button>
+      <button class="reset-btn" onclick="resetGame()">R</button>
     </div>
   </div>
 </div>
@@ -78,9 +92,6 @@ const SHAPES = [
 
 let board = Array.from({length: 20}, () => Array(10).fill(0));
 let score = 0;
-let dropCounter = 0;
-let dropInterval = 500;
-let lastTime = 0;
 let piece = randomShape();
 
 function randomShape() {
@@ -146,6 +157,20 @@ function clearLines() {
   scoreEl.textContent = score;
 }
 
+function move(dir) {
+  piece.x += dir;
+  if (collide()) piece.x -= dir;
+}
+
+function rotate() {
+  const rotated = piece.shape[0].map((_, i) =>
+    piece.shape.map(row => row[i]).reverse()
+  );
+  const oldShape = piece.shape;
+  piece.shape = rotated;
+  if (collide()) piece.shape = oldShape;
+}
+
 function drop() {
   piece.y++;
   if (collide()) {
@@ -153,45 +178,34 @@ function drop() {
     merge();
     clearLines();
     piece = randomShape();
-    if (collide()) {
-      board = Array.from({length: 20}, () => Array(10).fill(0));
-      score = 0;
-      scoreEl.textContent = 0;
-    }
+    if (collide()) resetGame();
   }
-  dropCounter = 0;
 }
 
-function update(time = 0) {
-  const deltaTime = time - lastTime;
-  lastTime = time;
-  dropCounter += deltaTime;
-  if (dropCounter > dropInterval) drop();
+function resetGame() {
+  board = Array.from({length: 20}, () => Array(10).fill(0));
+  score = 0;
+  scoreEl.textContent = 0;
+  piece = randomShape();
+}
+
+function gameLoop() {
+  piece.y++;
+  if (collide()) {
+    piece.y--;
+    merge();
+    clearLines();
+    piece = randomShape();
+    if (collide()) resetGame();
+  }
   drawBoard();
   drawPiece();
-  requestAnimationFrame(update);
+  setTimeout(gameLoop, 500);
 }
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft') piece.x--;
-  if (e.key === 'ArrowRight') piece.x++;
-  if (e.key === 'ArrowDown') dropInterval = 50; // 加速
-  if (e.key === 'ArrowUp') {
-    const rotated = piece.shape[0].map((_, i) =>
-      piece.shape.map(row => row[i]).reverse()
-    );
-    const oldShape = piece.shape;
-    piece.shape = rotated;
-    if (collide()) piece.shape = oldShape;
-  }
-  if (e.key === 'r' || e.key === 'R') location.reload();
-});
-
-document.addEventListener('keyup', e => {
-  if (e.key === 'ArrowDown') dropInterval = 500; // 恢复
-});
-
-update();
+drawBoard();
+drawPiece();
+gameLoop();
 </script>
 </body>
 </html>
