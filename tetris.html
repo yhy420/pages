@@ -2,77 +2,37 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>俄罗斯方块</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title></title>
 <style>
-  body { background:#1a1a3e; display:flex; justify-content:center; align-items:center; height:100vh; }
-  canvas { background:#000; border:2px solid #0fce7c; }
+html,body{margin:0;padding:0;overflow:hidden;background:#000;color:#fff;}
+canvas{display:block;width:100vw;height:100vh;position:absolute;top:0;left:0;}
+.controls{position:fixed;bottom:20px;width:100%;display:flex;justify-content:center;gap:10px;z-index:10;}
+.btn{padding:15px 25px;font-size:22px;background:rgba(255,255,255,0.2);border:1px solid #fff;border-radius:10px;color:#fff;}
 </style>
 </head>
 <body>
-<canvas id="g" width="300" height="600"></canvas>
+<canvas id="g"></canvas>
+<div class="controls">
+<div class="btn" ontouchstart="L()">◀</div>
+<div class="btn" ontouchstart="R()">▶</div>
+<div class="btn" ontouchstart="T()">🔄</div>
+<div class="btn" ontouchstart="D()">▼</div>
+</div>
 <script>
-const c=document.getElementById('g'), ctx=c.getContext('2d');
-ctx.scale(30,30);
-const SHAPES=[
-  [[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]],
-  [[1,0,0],[1,1,1]], [[0,0,1],[1,1,1]],
-  [[0,1,1],[1,1,0]], [[1,1,0],[0,1,1]]
-];
-let board=Array.from({length:20},()=>Array(10).fill(0));
-let piece={shape:random(),x:3,y:0};
-
-function random(){ return SHAPES[Math.floor(Math.random()*SHAPES.length)]; }
-
-function collide(){
-  for(let y=0;y<piece.shape.length;y++)
-    for(let x=0;x<piece.shape[y].length;x++)
-      if(piece.shape[y][x]){
-        let nx=piece.x+x, ny=piece.y+y;
-        if(nx<0||nx>=10||ny>=20||board[ny][nx]) return true;
-      }
-  return false;
-}
-
-function merge(){
-  piece.shape.forEach((r,y)=>r.forEach((v,x)=>v&&(board[piece.y+y][piece.x+x]=1)));
-}
-
-function rotate(){
-  const r=piece.shape[0].map((_,i)=>piece.shape.map(r=>r[i]).reverse());
-  const old=piece.shape; piece.shape=r;
-  if(collide()) piece.shape=old;
-}
-
-document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowLeft') piece.x--;
-  if(e.key==='ArrowRight') piece.x++;
-  if(e.key==='ArrowUp') rotate();
-  if(e.key==='ArrowDown') drop();
-  if(e.key==='r'||e.key==='R') reset();
-});
-
-function drop(){
-  piece.y++;
-  if(collide()){ piece.y--; merge(); clear(); piece={shape:random(),x:3,y:0}; if(collide()) reset(); }
-}
-
-function clear(){
-  board=board.filter(r=>!r.every(c=>c)).map(r=>r);
-  while(board.length<20) board.unshift(Array(10).fill(0));
-}
-
-function reset(){
-  board=Array.from({length:20},()=>Array(10).fill(0));
-  piece={shape:random(),x:3,y:0};
-}
-
-function draw(){
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,10,20);
-  board.forEach((r,y)=>r.forEach((v,x)=>v&&(ctx.fillStyle='#0fce7c',ctx.fillRect(x,y,0.9,0.9))));
-  ctx.fillStyle='#fff';
-  piece.shape.forEach((r,y)=>r.forEach((v,x)=>v&&ctx.fillRect(piece.x+x,piece.y+y,0.9,0.9)));
-}
-setInterval(()=>{ drop(); draw(); },500);
+const c=document.getElementById('g'),x=c.getContext('2d');
+c.width=innerWidth;c.height=innerHeight;
+const W=10,H=20,S=Math.min(c.width/W,c.height/H)*0.9,OX=(c.width-W*S)/2,OY=(c.height-H*S)/2;
+let B=Array(H).fill().map(()=>Array(W).fill(0)),C=0,P=null;
+const T=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];
+const R=['#0ff','#ff0','#f0f','#0f0','#f00','#00f','#fa0'];
+function n(){P={s:T[Math.floor(Math.random()*7)],r:0,x:4,y:0,c:R[C++%R.length]}}
+function k(p,oX=0,oY=0){for(let y=0;y<p.s[p.r].length;y++)for(let x=0;x<p.s[p.r][y].length;x++)if(p.s[p.r][y][x]){let nX=p.x+x+oX,nY=p.y+y+oY;if(nX<0||nX>=W||nY>=H||(nY>=0&&B[nY][nX]))return!0}return!1}
+function u(){if(k(P,0,1)){for(let y=0;y<P.s[P.r].length;y++)for(let x=0;x<P.s[P.r][y].length;x++)if(P.s[P.r][y][x])B[P.y+y][P.x+x]=P.c;for(let y=H-1;y>=0;y--)if(B[y].every(v=>v)){B.splice(y,1);B.unshift(Array(W).fill(0));y++}n()}else P.y++}
+function d(){x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(B[y][x]){x.fillStyle=B[y][x];x.fillRect(OX+x*S,OY+y*S,S,S)}x.fillStyle=P.c;for(let y=0;y<P.s[P.r].length;y++)for(let x=0;x<P.s[P.r][y].length;x++)if(P.s[P.r][y][x])x.fillRect(OX+(P.x+x)*S,OY+(P.y+y)*S,S,S)}
+function L(){if(!k(P,-1,0))P.x--}function R(){if(!k(P,1,0))P.x++}function T(){let o=P.r;P.r=(P.r+1)%P.s.length;if(k(P))P.r=o}function D(){u()}
+n();
+(function l(){u();d();requestAnimationFrame(l)})();
 </script>
 </body>
 </html>
