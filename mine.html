@@ -3,86 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Mine</title>
+<title></title>
 <style>
-  body { margin: 0; background: #1a1a3e; display: flex; justify-content: center; align-items: center; height: 100vh; touch-action: manipulation; }
-  table { border-collapse: collapse; }
-  td { width: 32px; height: 32px; border: 1px solid #0fce7c; text-align: center; background: #333; color: #fff; font-size: 16px; font-weight: bold; }
+html,body{margin:0;padding:0;overflow:hidden;background:#1a1a3e;}
+table{border-collapse:collapse;}
+td{width:36px;height:36px;border:1px solid #0fce7c;background:#222;text-align:center;color:#fff;font-size:20px;font-weight:bold;}
 </style>
 </head>
 <body>
 <table id="b"></table>
 <script>
-const N = 8, M = 10;
-let map = [], open = [];
-let timer;
-
-function init() {
-  map = Array(N).fill().map(() => Array(N).fill(0));
-  open = Array(N).fill().map(() => Array(N).fill(0));
-  let p = 0;
-  while (p < M) {
-    let x = Math.floor(Math.random() * N), y = Math.floor(Math.random() * N);
-    if (!map[x][y]) { map[x][y] = 9; p++; }
-  }
-  for (let i = 0; i < N; i++) {
-    for (let j = 0; j < N; j++) {
-      if (map[i][j] === 9) continue;
-      let c = 0;
-      for (let di = -1; di <= 1; di++)
-        for (let dj = -1; dj <= 1; dj++) {
-          let ni = i + di, nj = j + dj;
-          if (ni >= 0 && ni < N && nj >= 0 && nj < N && map[ni][nj] === 9) c++;
-        }
-      map[i][j] = c;
-    }
-  }
-  render();
-}
-
-function render() {
-  let h = '';
-  for (let i = 0; i < N; i++) {
-    h += '<tr>';
-    for (let j = 0; j < N; j++) {
-      h += `<td ontouchstart="touchStart(event, ${i}, ${j})" ontouchend="touchEnd(event, ${i}, ${j})">`;
-      if (open[i][j] === 1) {
-        if (map[i][j] === 9) h += '💣';
-        else if (map[i][j] > 0) h += map[i][j];
-      } else if (open[i][j] === -1) {
-        h += '🚩';
-      }
-      h += '</td>';
-    }
-    h += '</tr>';
-  }
-  document.getElementById('b').innerHTML = h;
-}
-
-function openCell(i, j) {
-  if (open[i][j] !== 0) return;
-  if (map[i][j] === 9) { alert('Boom!'); init(); return; }
-  open[i][j] = 1;
-  if (map[i][j] === 0) {
-    for (let di = -1; di <= 1; di++)
-      for (let dj = -1; dj <= 1; dj++) {
-        let ni = i + di, nj = j + dj;
-        if (ni >= 0 && ni < N && nj >= 0 && nj < N) openCell(ni, nj);
-      }
-  }
-  render();
-}
-
-function touchStart(e, i, j) {
-  timer = setTimeout(() => { open[i][j] = -1; render(); }, 500); // 长按插旗
-}
-
-function touchEnd(e, i, j) {
-  clearTimeout(timer);
-  openCell(i, j); // 短按翻开
-}
-
-init();
+const N=8,M=10,map=[],open=[];
+function i(){for(let x=0;x<N;x++){map[x]=[];open[x]=[];for(let y=0;y<N;y++)map[x][y]=0}let p=0;while(p<M){let x=Math.floor(Math.random()*N),y=Math.floor(Math.random()*N);if(!map[x][y])map[x][y]=9,p++}for(let x=0;x<N;x++)for(let y=0;y<N;y++)if(map[x][y]!=9){let c=0;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){let nx=x+dx,ny=y+dy;if(nx>=0&&nx<N&&ny>=0&&ny<N&&map[nx][ny]==9)c++}map[x][y]=c}}
+function o(x,y){if(open[x][y])return;if(map[x][y]==9){document.body.innerHTML='<div style="color:red;font-size:40px;text-align:center;margin-top:40vh;">BOOM!</div>';setTimeout(()=>location.reload(),1500);return}open[x][y]=1;if(map[x][y]==0){for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){let nx=x+dx,ny=y+dy;if(nx>=0&&nx<N&&ny>=0&&ny<N)o(nx,ny)}}d()}
+function f(x,y){open[x][y]=open[x][y]==2?0:2;d()}
+function d(){let h='';for(let x=0;x<N;x++){h+='<tr>';for(let y=0;y<N;y++){h+=`<td ontouchstart="${open[x][y]==2?'f('+x+','+y+')':'o('+x+','+y+')'}">`;if(open[x][y]==1)h+=map[x][y]==9?'💣':map[x][y]||'';else if(open[x][y]==2)h='🚩';h+='</td>'}h+='</tr>'}document.getElementById('b').innerHTML=h}
+i();d();
 </script>
 </body>
 </html>
+
