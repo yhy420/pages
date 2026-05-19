@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title></title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #000; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+<canvas id="g"></canvas>
+<script>
+const c = document.getElementById('g');
+const ctx = c.getContext('2d');
+c.width = innerWidth;
+c.height = innerHeight;
+
+let p = { x: innerWidth/2-25, y: innerHeight-100, w: 50, h: 50 };
+let b = [], e = [];
+
+setInterval(()=> b.push({x:p.x+p.w/2-3,y:p.y,w:6,h:12}), 300);
+setInterval(()=> e.push({x:Math.random()*(innerWidth-40),y:-40,w:40,h:40}), 1200);
+
+addEventListener('touchmove', ev=>{
+  ev.preventDefault();
+  p.x = ev.touches[0].clientX - p.w/2;
+  p.x = Math.max(0, Math.min(innerWidth-p.w, p.x));
+},{passive:false});
+
+(function loop(){
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.fillStyle='cyan'; ctx.fillRect(p.x,p.y,p.w,p.h);
+  b=b.filter(l=>{l.y-=10;ctx.fillStyle='yellow';ctx.fillRect(l.x,l.y,l.w,l.h);return l.y>-10;});
+  e=e.filter(m=>{
+    m.y+=3;ctx.fillStyle='red';ctx.fillRect(m.x,m.y,m.w,m.h);
+    if(m.x<p.x+p.w&&m.x+m.w>p.x&&m.y<p.y+p.h&&m.y+m.h>p.y){location.reload();}
+    return m.y<c.height;
+  });
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
+
