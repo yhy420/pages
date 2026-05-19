@@ -2,39 +2,25 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>国际象棋</title>
-<link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
-<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title></title>
 <style>
-  body { background: #1a1a3e; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-  #board { width: 400px; }
-  button { padding: 10px 20px; font-size: 16px; margin: 5px; cursor: pointer; background: #0fce7c; border: none; color: #1a1a3e; border-radius: 5px; }
+html,body{margin:0;padding:0;overflow:hidden;background:#222;touch-action:none;}
+canvas{display:block;width:100vw;height:100vh;}
 </style>
 </head>
 <body>
-<div id="board"></div>
-<div>
-  <button onclick="undoMove()">悔棋</button>
-  <button onclick="resetBoard()">重开</button>
-</div>
+<canvas id="g"></canvas>
 <script>
-  const game = new Chess();
-  const board = Chessboard('board', {
-    draggable: true,
-    position: 'start',
-    onDragStart: (source, piece) => {
-      if (game.game_over()) return false;
-      if ((game.turn() === 'w' && piece.search(/^b/) !== -1) || (game.turn() === 'b' && piece.search(/^w/) !== -1)) return false;
-    },
-    onDrop: (source, target) => {
-      const move = game.move({ from: source, to: target, promotion: 'q' });
-      if (move === null) return 'snapback';
-      if (game.game_over()) setTimeout(() => alert('Game Over'), 200);
-    }
-  });
-  function undoMove() { game.undo(); board.position(game.fen()); }
-  function resetBoard() { game.reset(); board.start(); }
+const c=document.getElementById('g'),x=c.getContext('2d');
+c.width=innerWidth;c.height=innerHeight;
+const sz=Math.min(c.width,c.height)*0.9,cs=sz/8,ox=(c.width-sz)/2,oy=(c.height-sz)/2;
+let b=[['r','n','b','q','k','b','n','r'],['p','p','p','p','p','p','p','p'],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['P','P','P','P','P','P','P','P'],['R','N','B','Q','K','B','N','R']];
+let sel=null,turn='w';
+const U={'k':'♔','q':'♕','r':'♖','b':'♗','n':'♘','p':'♙','K':'♚','Q':'♛','R':'♜','B':'♝','N':'♞','P':'♟'};
+function dr(){x.clearRect(0,0,c.width,c.height);for(let r=0;r<8;r++){for(let f=0;f<8;f++){x.fillStyle=(r+f)%2?'#b58863':'#f0d9b5';x.fillRect(ox+f*cs,oy+r*cs,cs,cs);if(b[r][f]){x.font=cs*0.7+'px Arial';x.textAlign='center';x.textBaseline='middle';x.fillStyle=b[r][f]==b[r][f].toUpperCase()?'#fff':'#000';x.fillText(U[b[r][f]],ox+f*cs+cs/2,oy+r*cs+cs/2)}}}
+c.ontouchstart=e=>{let t=e.touches[0],r=Math.floor((t.clientY-oy)/cs),f=Math.floor((t.clientX-ox)/cs);if(r>=0&&r<8&&f>=0&&f<8){if(sel){if(b[r][f]&&((turn=='w'&&b[r][f]==b[r][f].toUpperCase())||(turn=='b'&&b[r][f]==b[r][f].toLowerCase()))){sel=null;return}let pr=sel[0],pf=sel[1];b[r][f]=b[pr][pf];b[pr][pf]='';turn=turn=='w'?'b':'w';sel=null}else{if(b[r][f]&&((turn=='w'&&b[r][f]==b[r][f].toUpperCase())||(turn=='b'&&b[r][f]==b[r][f].toLowerCase())))sel=[r,f]}}dr();}
+dr();
 </script>
 </body>
 </html>
