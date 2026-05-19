@@ -2,61 +2,52 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>贪吃蛇</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Snake</title>
 <style>
-  body { margin:0; background:#1a1a3e; display:flex; justify-content:center; align-items:center; height:100vh; }
-  canvas { background:#000; border:2px solid #0fce7c; }
+  body { margin: 0; background: #000; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  canvas { flex: 1; background: #000; margin: auto; }
+  .ctrl { display: grid; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 60px); gap: 10px; justify-content: center; padding: 20px; background: #111; }
+  .ctrl div { width: 60px; height: 60px; background: #333; color: #fff; font-size: 24px; display: flex; justify-content: center; align-items: center; border-radius: 10px; user-select: none; }
 </style>
 </head>
 <body>
-<canvas id="g" width="400" height="400"></canvas>
+<canvas id="g" width="300" height="300"></canvas>
+<div class="ctrl">
+  <div></div>
+  <div ontouchstart="dir='UP'">⬆️</div>
+  <div></div>
+  <div ontouchstart="dir='LEFT'">⬅️</div>
+  <div ontouchstart="reset()">🔄</div>
+  <div ontouchstart="dir='RIGHT'">➡️</div>
+  <div></div>
+  <div ontouchstart="dir='DOWN'">⬇️</div>
+  <div></div>
+</div>
 <script>
-const c=document.getElementById('g'), ctx=c.getContext('2d');
-const s=20, rows=20;
-let snake=[{x:8*s,y:10*s}], dir='RIGHT', food, score=0;
+const c = document.getElementById('g'), ctx = c.getContext('2d');
+const s = 15, rows = c.height / s;
+let snake = [{x: 10*s, y: 10*s}], dir = 'RIGHT', food;
 
-function newFood(){
-  food={x:Math.floor(Math.random()*rows)*s, y:Math.floor(Math.random()*rows)*s};
-}
+function newFood() { food = {x: Math.floor(Math.random()*rows)*s, y: Math.floor(Math.random()*rows)*s}; }
 newFood();
 
-document.addEventListener('keydown', e=>{
-  if(e.key==='ArrowLeft'&&dir!=='RIGHT') dir='LEFT';
-  if(e.key==='ArrowUp'&&dir!=='DOWN') dir='UP';
-  if(e.key==='ArrowRight'&&dir!=='LEFT') dir='RIGHT';
-  if(e.key==='ArrowDown'&&dir!=='UP') dir='DOWN';
-});
+function reset() { snake = [{x: 10*s, y: 10*s}]; dir = 'RIGHT'; newFood(); }
 
-function gameOver(){
-  alert('游戏结束！得分：'+score);
-  snake=[{x:8*s,y:10*s}];
-  dir='RIGHT';
-  score=0;
-  newFood();
-}
+function gameOver() { alert("Game Over"); reset(); }
 
-function draw(){
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,c.width,c.height);
-  ctx.fillStyle='red'; ctx.fillRect(food.x,food.y,s,s);
-
-  let head={...snake[0]};
-  if(dir==='LEFT') head.x-=s;
-  if(dir==='RIGHT') head.x+=s;
-  if(dir==='UP') head.y-=s;
-  if(dir==='DOWN') head.y+=s;
-
-  if(head.x<0||head.x>=c.width||head.y<0||head.y>=c.height||snake.some(p=>p.x===head.x&&p.y===head.y)){
-    gameOver(); return;
-  }
-
+function draw() {
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.fillStyle = 'red'; ctx.fillRect(food.x, food.y, s, s);
+  let head = {...snake[0]};
+  if (dir === 'LEFT') head.x -= s; if (dir === 'RIGHT') head.x += s;
+  if (dir === 'UP') head.y -= s; if (dir === 'DOWN') head.y += s;
+  if (head.x < 0 || head.x >= c.width || head.y < 0 || head.y >= c.height || snake.some(p => p.x === head.x && p.y === head.y)) { gameOver(); return; }
   snake.unshift(head);
-  if(head.x===food.x&&head.y===food.y){ score++; newFood(); }
-  else snake.pop();
-
-  ctx.fillStyle='lime';
-  snake.forEach(p=>ctx.fillRect(p.x,p.y,s,s));
+  if (head.x === food.x && head.y === food.y) newFood(); else snake.pop();
+  ctx.fillStyle = 'lime'; snake.forEach(p => ctx.fillRect(p.x, p.y, s, s));
 }
-setInterval(draw,120);
+setInterval(draw, 120);
 </script>
 </body>
 </html>
